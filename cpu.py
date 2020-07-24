@@ -114,24 +114,24 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        HLT = 0b00000001
-        LDI = 0b10000010
-        PRN = 0b01000111
-        MUL = 0b10100010
-        PUSH = 0b01000101
-        POP = 0b01000110
-        CALL = 0b01010000
-        ADD = 0b10100000
-        RET = 0b00010001
-        CMP = 0b10100111
-        JEQ = 0b01010101
-        LD = 0b10000011
-        PRA = 0b01001000
-        INC = 0b01100101
-        DEC = 0b01100110
-        JMP = 0b01010100
-        ST = 0b10000100
-        JNE = 0b01010110
+        HLT = 0b00000001 # halt the cpu
+        LDI = 0b10000010 # set the value of a register
+        PRN = 0b01000111 # print numeric value
+        MUL = 0b10100010 # multiply the values in two registers
+        PUSH = 0b01000101 # push the value in the given register
+        POP = 0b01000110 # pop the value at the top
+        CALL = 0b01010000 # call a subroutine
+        ADD = 0b10100000 # add the value in two registers
+        RET = 0b00010001 # returns from subroutine
+        CMP = 0b10100111 # compare the values in two registers
+        JEQ = 0b01010101 # checks if equal flag is true and jumps
+        LD = 0b10000011 # load register_a with memory value from given address
+        PRA = 0b01001000 # print alpha character
+        INC = 0b01100101 # increments
+        DEC = 0b01100110 # decrements
+        JMP = 0b01010100 # jumps to given address
+        ST = 0b10000100 # store value in reg_b in address stored in reg_a
+        JNE = 0b01010110 # check if equal flag is false and jumps
 
         running = True
         while running:
@@ -139,31 +139,37 @@ class CPU:
             instruction_register = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-            # print(hex(instruction_register))
+
             if instruction_register == HLT:
                 running = False
                 self.pc += 1
+
             elif instruction_register == LDI:
                 self.reg[operand_a] = operand_b
                 self.pc += 3
+
             elif instruction_register == PRN:
                 print(self.reg[operand_a])
                 self.pc += 2
+
             elif instruction_register == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+
             elif instruction_register == PUSH:
                 self.reg[self.SP] -= 1
                 value = self.reg[operand_a]
                 address = self.reg[self.SP]
                 self.ram_write(address, value)
                 self.pc += 2
+
             elif instruction_register == POP:
                 address = self.reg[self.SP]
                 value = self.ram_read(address)
                 self.reg[operand_a] = value
                 self.reg[self.SP] += 1
                 self.pc += 2
+
             elif instruction_register == CALL:
                 # Get address of the next instruction
                 previous_address = self.pc + 2
@@ -175,9 +181,11 @@ class CPU:
                 reg_num = self.ram[self.pc + 1]
                 subroutine_addr = self.reg[reg_num]
                 self.pc = subroutine_addr
+
             elif instruction_register == ADD:
                 self.alu("ADD", operand_a, operand_b)
                 self.pc += 3
+
             elif instruction_register == RET:
                 # Get return address from the top of the stack
                 address = self.reg[self.SP]
@@ -185,19 +193,23 @@ class CPU:
                 self.reg[self.SP] += 1
                 # Set the PC to the return address
                 self.pc = ret_address
+
             elif instruction_register == CMP:
                 reg_a = self.reg[operand_a]
                 reg_b = self.reg[operand_b]
                 self.alu("CMP", reg_a, reg_b)
                 self.pc += 3
+
             elif instruction_register == JEQ:
                 if self.fl["E"] == 1:
                     self.pc = self.reg[operand_a]
                 else:
                     self.pc += 2
+
             elif instruction_register == LD:
                 self.reg[operand_a] = self.ram[self.reg[operand_b]]
                 self.pc += 3
+
             elif instruction_register == PRA:
                 value = self.reg[operand_a]
                 if isinstance(value, int):
@@ -205,23 +217,29 @@ class CPU:
                 else:
                     print(value)
                 self.pc += 2
+
             elif instruction_register == INC:
                 self.alu("INC", operand_a, operand_b)
                 self.pc += 2
+
             elif instruction_register == DEC:
                 self.alu("DEC", operand_a, operand_b)
                 self.pc += 2
+
             elif instruction_register == JMP:
                 self.pc = self.reg[operand_a]
+
             elif instruction_register == ST:
                 self.ram[operand_a] = operand_b
                 self.pc += 3
+
             elif instruction_register == JNE:
                 address = self.reg[operand_a]
                 if self.fl['E'] == 0:
                     self.pc = address
                 else:
                     self.pc += 2
+                    
             else:
                 print(f"Unknown instruction {instruction_register}")
                 print("{0:b}".format(instruction_register))
@@ -232,5 +250,6 @@ class CPU:
     
     def ram_write(self, mar, mdr):
         self.ram[mar] = mdr
+
     def addi(self, reg_a, value):
         self.reg[reg_a] += value
